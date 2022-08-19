@@ -1,0 +1,151 @@
+
+from tkinter import *
+from tkinter import ttk
+from tkinter import messagebox
+import pymysql
+
+
+class Aplicacion:
+
+    def __init__(self):
+        self.vista = Tk()
+        self.vista.title("Aplicacion de Escritorio")
+        self.vista.geometry("1030x650")
+        self.vista.config(bg="#006690")
+
+        frame1 = LabelFrame(self.vista,text="Lista de estudiantes",font=("Arial",12))
+        frame2 = LabelFrame(self.vista,text="Materias disponibles",font=("Arial",12))
+        frame3 = LabelFrame(self.vista,text="Datos del estudiante",font=("Arial",12))
+
+        frame1.pack(fill="both", expand="yes", padx=20, pady=10)
+        frame2.pack(fill="both", expand="yes", padx=20, pady=10)
+        frame3.pack(fill="both", expand="yes", padx=20, pady=10)
+
+        Nombre = StringVar()
+        Apellido = StringVar()
+        Direccion = StringVar()
+        Edad = StringVar()
+
+        def Agregar():
+            if Nombre.get()=="" or Apellido.get()=="":
+                messagebox.showerror("por favor", "Introdusca la informacion completa")
+
+            else:
+                base = pymysql.connect(host="localhost",user="root",passwd="",database="instituto")
+                cursor = base.cursor()  
+                cursor.execute("insert into materias values(%s,%s,%s,%s,%s)",(
+
+                Nombre.get(),
+                Apellido.get(),
+                Direccion.get(),
+                Edad.get(),
+                Combo1.get(),  
+                )) 
+                base.commit()
+                base.close() 
+                messagebox.showinfo("Datos completados", "Los datos fueron completados")
+
+        def Reiniciar():
+            Nombre.set("") 
+            Apellido.set("")
+            Direccion.set("")
+            Edad.set("") 
+
+        def datos():
+            base = pymysql.connect(host="localhost", user="root", password="", database="instituto")
+            cursor = base.cursor()
+            cursor.execute("select * from materias")
+            result = cursor.fetchall()
+            if len(result) != 0:
+                self.tree.delete(*self.tree.get_children())
+                for row in result:
+                    self.tree.insert('',END,values=row) 
+            base.commit()
+            base.close() 
+
+        def traineeInfo(ev):
+            viewInfo =   self.tree.focus()
+            learnerData =  self.tree.item(viewInfo) 
+            row = learnerData['values'] 
+            Nombre.set(row[0])
+            Apellido.set(row[1])
+            Direccion.set(row[2]) 
+            Edad.set(row[3]) 
+
+            
+
+        def Actualizar():
+            base = pymysql.connect(host="localhost", user="root", password="", database="instituto")
+            cursor = base.cursor()
+            cursor.execute("update materias set apellido=%s,direccion=%s,edad=%s,materia=%s where nombre=%s", (
+            
+            Apellido.get(),
+            Direccion.get(),
+            Edad.get(),
+            Combo1.get(),
+            Nombre.get()
+
+            ))   
+            base.commit()
+            datos()
+            base.close()                 
+
+
+
+
+        self.tree = ttk.Treeview(frame1, columns=(1,2,3,4,5),show="headings",height="5")
+        self.tree.pack()
+
+        self.tree.heading(1, text="Nombre")
+        self.tree.heading(2, text="Apellido")
+        self.tree.heading(3, text="Direccion")
+        self.tree.heading(4, text="Edad")
+        self.tree.heading(5, text="Materia")
+        self.tree.bind("<ButtonRelease-1>",traineeInfo)
+        
+
+        label1 = Label(frame2,text="Materia a elegir",font=("Arial",11))
+        label1.place(x=400,y=5)
+
+        Combo1 = StringVar()
+        valores1=(' ', 'Python', 'C#', 'Kotlin', 'PHP', 'html', 'css', 'javascript', 'Angular','React')
+        self.combobox1=ttk.Combobox(frame2,state='readonly',width=20,font=("arial",11),
+                                    textvariable=Combo1,values=valores1)
+        self.combobox1.current(0)
+        self.combobox1.place(x=360,y=30)
+        
+        lbl1 = Label(frame3,text="Nombre: ")
+        lbl1.grid(row=0, column=0, padx=5, pady=3)
+        self.ent1 = Entry(frame3,textvariable=Nombre)
+        self.ent1.focus()
+        self.ent1.grid(row=0, column=1, padx=5, pady=3)
+
+        lbl1 = Label(frame3,text="Apellido: ")
+        lbl1.grid(row=1, column=0, padx=5, pady=3)
+        self.ent2 = Entry(frame3,textvariable=Apellido)
+        self.ent2.grid(row=1, column=1, padx=5, pady=3)
+
+        lbl1 = Label(frame3,text="Direccion: ")
+        lbl1.grid(row=2, column=0, padx=5, pady=3)
+        self.ent3 = Entry(frame3,textvariable=Direccion)
+        self.ent3.grid(row=2, column=1, padx=5, pady=3)
+
+        lbl1 = Label(frame3,text="Edad: ")
+        lbl1.grid(row=3, column=0, padx=5, pady=3)
+        self.ent4 = Entry(frame3,textvariable=Edad)
+        self.ent4.grid(row=3, column=1, padx=5, pady=3)
+
+        btn1 = Button(frame3,text="Agregar",width=20,command=Agregar)
+        btn1.grid(row=2,column=7, padx=20, pady=3)
+
+        btn2 = Button(frame3,text="Actualizar",width=20,command=Actualizar)
+        btn2.grid(row=2,column=8, padx=20, pady=3)
+
+        btn3 = Button(frame3,text="Reiniciar",width=20,command=Reiniciar)
+        btn3.grid(row=2,column=9, padx=20, pady=3)
+
+        btn4 = Button(frame3,text="Vista",width=20,command=datos)
+        btn4.grid(row=2,column=10, padx=20, pady=3)
+
+        self.vista.mainloop()
+Aplicacion()
